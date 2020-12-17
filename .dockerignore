@@ -1,3 +1,10 @@
+.git
+Dockerfile
+Dockerfile.prod
+.DS_Store
+.gitignore
+.dockerignore
+
 /credentials
 /cache
 /store
