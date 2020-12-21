@@ -4,16 +4,17 @@ import os
 
 class BaseConfig:
     TESTING = False
+    PRODUCTION = False
     AWS_REGION = "eu-west-2"
-    DATABASE_URL = "http://localhost:8000"
+    DATABASE_URL = ""
 
 class DevelopmentConfig(BaseConfig):
-    pass
+    DATABASE_URL = "http://db:8000"
 
 class TestingConfig(BaseConfig):
     TESTING = True
     pass
 
 class ProductionConfig(BaseConfig):
-    pass
+    PRODUCTION = True
 

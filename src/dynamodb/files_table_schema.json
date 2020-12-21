@@ -1,0 +1,15 @@
+{
+    "TableName": "FilesTable",
+    "KeySchema": [
+      { "AttributeName": "user", "KeyType": "HASH" },
+      { "AttributeName": "reference", "KeyType": "RANGE" }
+    ],
+    "AttributeDefinitions": [
+      { "AttributeName": "user", "AttributeType": "S" },
+      { "AttributeName": "reference", "AttributeType": "S" }
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+}

@@ -13,8 +13,8 @@ services:
     environment:
       - FLASK_ENV=development
       - APP_SETTINGS=src.config.DevelopmentConfig
-      - AWS_ACCESS_KEY_ID=DUMMYIDEXAMPLE
-      - AWS_SECRET_ACCESS_KEY=DUMMYEXAMPLEKEY
+      - AWS_ACCESS_KEY_ID=AKIAZVRKZOPUMIWUEW55
+      - AWS_SECRET_ACCESS_KEY=E2y8s+kA/LgsRyuAaq2defkD+CMCJ981cTx8vdZL
     depends_on:
       - db
 
