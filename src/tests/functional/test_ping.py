@@ -1,9 +1,11 @@
 # src/tests/test_ping.py
 
 import json
+from typing import Any
 
 
-def test_ping(test_app):
+def test_ping(test_app: Any) -> None:
+    """Ping route should return the correct response."""
     # Given
     client = test_app.test_client()
 
