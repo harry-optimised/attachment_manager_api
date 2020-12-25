@@ -8,6 +8,8 @@ from flask import Flask
 
 from src.dynamodb.connection_manager import ConnectionManager
 
+cm = ConnectionManager()
+
 
 def create_app(script_info=None):
 
@@ -21,7 +23,7 @@ def create_app(script_info=None):
     # Setup the database.
     endpoint_url = app.config["DATABASE_URL"]
     region = app.config["AWS_DEFAULT_REGION"]
-    cm = ConnectionManager(endpoint_url, region)
+    cm.initialise(endpoint_url, region)
 
     # If not running in production, create and seed the table using local files.
     if not app.config["PRODUCTION"]:
@@ -38,8 +40,10 @@ def create_app(script_info=None):
 
     # register blueprints
     from src.api.ping import ping_blueprint
+    from src.api.files import files_blueprint
 
     app.register_blueprint(ping_blueprint)
+    app.register_blueprint(files_blueprint)
 
     # Shell context for flask cli.
     @app.shell_context_processor

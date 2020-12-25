@@ -1,10 +1,13 @@
 # src/dynamodb/connection_manager.py
 
 from .db_setup import get_dynamodb_connection
-
+from boto3.dynamodb.conditions import Key
 
 class ConnectionManager:
-    def __init__(self, endpoint_url, region):
+    def __init__(self):
+        pass
+
+    def initialise(self, endpoint_url, region):
         self.db = get_dynamodb_connection(endpoint_url, region)
 
     def create_table(self, table_schema):
@@ -30,3 +33,13 @@ class ConnectionManager:
         table = self.db.Table("FilesTable")
         all_items = table.scan()
         print(all_items["Items"])
+
+    def get_files_for_user(self, user):
+        table = self.db.Table("FilesTable")
+        response = table.query(
+            KeyConditionExpression=Key('user').eq(user),
+            ConsistentRead=True
+        )
+        return response['Items']
+
+        # Todo: Generalise to multiple batches, see LastEvaluatedKey.
