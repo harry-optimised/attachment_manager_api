@@ -43,3 +43,22 @@ class ConnectionManager:
         return response['Items']
 
         # Todo: Generalise to multiple batches, see LastEvaluatedKey.
+
+    def put_file(self, file):
+        table = self.db.Table("FilesTable")
+        # Todo: Validate file.
+        response = table.put_item(Item=file)
+        # Todo: Fail properly.
+        return
+
+    def delete_file(self, file):
+        table = self.db.Table("FilesTable")
+        # Todo: Validate file.
+        response = table.delete_item(
+            Key={
+                'user': file['user'],
+                'reference': file['reference']
+            }
+        )
+        # Todo: Fail properly.
+        return
