@@ -1,10 +1,12 @@
-# src/dynamodb/db_setup.py
+"""Utility functions for setting up and managing a dynamodb connection."""
+
+from typing import Any
 
 import boto3
 from botocore.config import Config
 
 
-def get_dynamodb_connection(endpoint_url, region):
+def get_dynamodb_connection(endpoint_url: str, region: str) -> Any:
     """Instantiate and return a dynamodb resource using boto3."""
     # Create the config.
     config = Config(

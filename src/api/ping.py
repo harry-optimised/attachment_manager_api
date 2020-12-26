@@ -1,4 +1,6 @@
-# src/api/ping.py
+"""Define the ping API resource."""
+
+from typing import Any
 
 from flask import Blueprint
 from flask_restx import Api, Resource
@@ -8,7 +10,10 @@ api = Api(ping_blueprint)
 
 
 class Ping(Resource):
-    def get(self):
+    """Ping resource for checking API health."""
+
+    def get(self: Any) -> dict:
+        """Return pong message."""
         return {"status": "success", "message": "pong!"}
 
 

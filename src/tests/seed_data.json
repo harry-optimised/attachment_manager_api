@@ -1,7 +1,26 @@
 [
   {
     "user": "harry",
-    "reference": "ref",
-    "feature_1": "abc"
+    "reference": "file_1.pdf2020-12-12@08:30:00",
+    "name": "file_1.pdf",
+    "created": "2020-12-12@08:30:00",
+    "property_1": "abc",
+    "property_2": "123"
+  },
+  {
+    "user": "harry",
+    "reference": "file_2.pdf2020-12-12@08:30:00",
+    "name": "file_2.pdf",
+    "created": "2020-12-12@08:30:00",
+    "property_1": "def",
+    "property_2": "456"
+  },
+  {
+    "user": "arnaud",
+    "reference": "file_3.pdf2020-12-12@08:30:00",
+    "name": "file_3.pdf",
+    "created": "2020-12-12@08:30:00",
+    "property_1": "ghi",
+    "property_2": "789"
   }
 ]

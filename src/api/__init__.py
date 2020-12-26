@@ -1,0 +1,1 @@
+"""Define all API resources."""

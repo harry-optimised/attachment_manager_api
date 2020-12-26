@@ -1,4 +1,4 @@
-# src/tests/test_ping.py
+"""Tests for the ping route."""
 
 import json
 from typing import Any
