@@ -3,11 +3,12 @@
 import os
 from typing import Any
 
-from flask import Flask
+from flask import Flask, jsonify
 
 from src.dynamodb.connection_manager import ConnectionManager
 
 cm = ConnectionManager()
+app_config = None
 
 
 def create_app() -> Any:
@@ -19,10 +20,14 @@ def create_app() -> Any:
     app_settings = os.getenv("APP_SETTINGS")
     app.config.from_object(app_settings)
 
+    # Make the app config global so other parts of the system can use it.
+    global app_config
+    app_config = app.config
+
     # Setup the database.
     cm.initialise(app.config)
 
-    # register blueprints
+    # Register blueprints
     from src.api.files import files_blueprint
     from src.api.ping import ping_blueprint
 

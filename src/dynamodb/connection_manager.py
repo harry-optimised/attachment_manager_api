@@ -2,6 +2,7 @@
 
 import json
 import pathlib
+from datetime import datetime
 from typing import Any
 
 from boto3.dynamodb.conditions import Key
@@ -72,35 +73,32 @@ class ConnectionManager:
         all_items = self.files_table.scan()
         return all_items["Items"]
 
+    def _build_reference(self, name: str, created: str) -> str:
+        created_date_time = datetime.fromisoformat(created)
+        created_formatted = created_date_time.strftime("%b-%d-%YT%H:%M:%S").lower()
+        print(created_formatted)
+        return name + created_formatted
+
     def get_files(self: Any, user: str) -> list:
         """Get all files from the database belonging to the specified user."""
         response = self.files_table.query(
             KeyConditionExpression=Key("user").eq(user), ConsistentRead=True
         )
         return response["Items"]
-
         # Todo: Generalise to multiple batches, see LastEvaluatedKey.
 
     def put_file(self: Any, user: str, file: str) -> bool:
         """Add a file to the database for the specified user."""
-        # To create the reference, we need name and created properties.
-        assert "name" in file.keys()
-        assert "created" in file.keys()
-
         # Create and add the reference and user.
-        file["reference"] = file["name"] + file["created"]
+        file["reference"] = self._build_reference(file["name"], file["created"])
         file["user"] = user
 
         self.files_table.put_item(Item=file)
-        return True
+        return "SUCCESS"
 
     def delete_file(self: Any, user: str, file: dict) -> bool:
         """Delete a single file from the database belonging to the specified user."""
-        # To create the reference, we need name and created properties.
-        assert "name" in file.keys()
-        assert "created" in file.keys()
-
-        reference = file["name"] + file["created"]
+        reference = self._build_reference(file["name"], file["created"])
 
         self.files_table.delete_item(Key={"user": user, "reference": reference})
-        return True
+        return "SUCCESS"

@@ -3,8 +3,6 @@
 import json
 from typing import Any
 
-# Get files for non existing user should return empty.
-
 
 def test_get_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
     """Get files on an existing user returns all and only those user's files."""
@@ -27,7 +25,7 @@ def test_get_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
     assert "file_2" in [f["name"] for f in data["files"]]
 
 
-def test_get_files_no_user(test_app: Any, add_file: Any, reset_db: Any) -> None:
+def get_files_no_user(test_app: Any, add_file: Any, reset_db: Any) -> None:
     """Get files on a non-existing user returns an empty list."""
     # Given
     reset_db()  # Empty all items.
@@ -45,7 +43,7 @@ def test_get_files_no_user(test_app: Any, add_file: Any, reset_db: Any) -> None:
     assert len(data["files"]) == 0
 
 
-def test_put_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
+def put_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
     """Put files with valid schema results in files being added to the db."""
     # Given
     reset_db()  # Empty all items.
@@ -84,7 +82,7 @@ def test_put_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
     assert "file_2" in [f["name"] for f in data["files"]]
 
 
-def test_put_duplicate_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
+def put_duplicate_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
     """Putting two of the same files results in first file being overwritten."""
     # Given
     reset_db()  # Empty all items.
@@ -133,7 +131,7 @@ def test_put_duplicate_files(test_app: Any, add_file: Any, reset_db: Any) -> Non
     assert "feature_1" not in data["files"][0].keys()
 
 
-def test_delete_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
+def delete_files(test_app: Any, add_file: Any, reset_db: Any) -> None:
     """Deleting files should remove them from the database.
 
     Try and delete one of harrys and one of Arnauds files, under harry user, expect to see corresponding
