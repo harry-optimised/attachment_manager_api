@@ -4,7 +4,6 @@ from typing import Any
 
 from flask import Blueprint, abort, request
 from flask_restx import Api, Resource
-from flask_restx import fields as restx_fields
 from marshmallow import INCLUDE, Schema, fields
 
 from src import cm
@@ -18,6 +17,8 @@ class File(Schema):
     """Validation schema for individual file objects in the list of files."""
 
     class Meta:
+        """Meta."""
+
         unknown = INCLUDE
 
     name = fields.Str(required=True)
@@ -25,6 +26,7 @@ class File(Schema):
 
 
 # Todo: Add swagger documentation.
+# Add error tracking.
 class FilesSchema(Schema):
     """Validation schema for files put request."""
 
@@ -34,7 +36,7 @@ class FilesSchema(Schema):
 class FilesList(Resource):
     """Files API Resource for getting, putting, and deleting files."""
 
-    def _scrub_files(self, files):
+    def _scrub_files(self: Any, files: list) -> list:
         """Remove user and reference properties from each file."""
         scrubbed_files = []
         for f in files:
@@ -72,11 +74,11 @@ class FilesList(Resource):
         new_files = post_data.get("files")
 
         # Add all new files to the data base.
-        response_states = {}
+        status = {}
         for f in new_files:
-            response_states[f["name"]] = cm.put_file(id, f)
+            status[f["name"]] = cm.put_file(id, f)
 
-        return {"files_status": response_states}, 200
+        return {"status": status}, 200
 
     @requires_auth
     def delete(self: Any) -> Any:
@@ -97,11 +99,11 @@ class FilesList(Resource):
         post_data = request.get_json()
         new_files = post_data.get("files")
 
-        response_states = {}
+        status = {}
         for f in new_files:
-            response_states[f["name"]] = cm.delete_file(id, f)
+            status[f["name"]] = cm.delete_file(id, f)
 
-        return {"response_states": response_states}, 200
+        return {"status": status}, 200
 
 
 api.add_resource(FilesList, "/files")

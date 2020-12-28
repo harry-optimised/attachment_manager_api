@@ -73,10 +73,9 @@ class ConnectionManager:
         all_items = self.files_table.scan()
         return all_items["Items"]
 
-    def _build_reference(self, name: str, created: str) -> str:
+    def _build_reference(self: Any, name: str, created: str) -> str:
         created_date_time = datetime.fromisoformat(created)
         created_formatted = created_date_time.strftime("%b-%d-%YT%H:%M:%S").lower()
-        print(created_formatted)
         return name + created_formatted
 
     def get_files(self: Any, user: str) -> list:
@@ -100,5 +99,16 @@ class ConnectionManager:
         """Delete a single file from the database belonging to the specified user."""
         reference = self._build_reference(file["name"], file["created"])
 
-        self.files_table.delete_item(Key={"user": user, "reference": reference})
-        return "SUCCESS"
+        # Try and get the file first, to see if it exists.
+        response = self.files_table.get_item(
+            Key={"user": user, "reference": reference}, ConsistentRead=True
+        )
+
+        # If the item exists, delete and return SUCCESS.
+        if "Item" in response.keys():
+            self.files_table.delete_item(Key={"user": user, "reference": reference})
+            return "DELETED"
+
+        # Otherwise report NOT_FOUND
+        else:
+            return "NOT_FOUND"

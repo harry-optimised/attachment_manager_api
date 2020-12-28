@@ -2,17 +2,18 @@
 
 import json
 from functools import wraps
+from typing import Any
 
 import requests
-from flask import Flask, _request_ctx_stack, abort, jsonify, request
+from flask import _request_ctx_stack, abort, request
 from jose import jwt
 from six.moves.urllib.request import urlopen
 
 from src import app_config
 
 
-def get_token_auth_header():
-    """Obtains the Access Token from the Authorization Header."""
+def get_token_auth_header() -> str:
+    """Obtain the Access Token from the Authorization Header."""
     auth = request.headers.get("Authorization", None)
     if not auth:
         abort(401, "Authorization header was missing.")
@@ -28,7 +29,9 @@ def get_token_auth_header():
 
     return parts[1]
 
-def authenticate_token(token):
+
+def authenticate_token(token: str) -> bool:
+    """Authenticate the provided JWT token using Auth0."""
     jsonurl = urlopen(f"{app_config['AUTH_TENANT_URL']}/.well-known/jwks.json")
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
@@ -62,11 +65,12 @@ def authenticate_token(token):
         return True
     abort(401, "Unable to find RSA key.")
 
-def requires_auth(f):
-    """Decorator for validating the Access Token."""
+
+def requires_auth(f: Any) -> Any:
+    """Decorate a function by validating the Access Token."""
 
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def decorated(*args: list, **kwargs: dict) -> Any:
         token = get_token_auth_header()
         if authenticate_token(token):
             return f(*args, **kwargs)
@@ -74,7 +78,7 @@ def requires_auth(f):
     return decorated
 
 
-def get_user_id():
+def get_user_id() -> str:
     """Use the access token to retrieve the user profile and return the email as the user id."""
     token = get_token_auth_header()
 
@@ -94,5 +98,6 @@ def get_user_id():
     else:
         abort(
             403,
-            f"The server was enable to fetch the user email with the provided access token. Ensure the access token has email scope.",
+            "The server was enable to fetch the user email with the provided access token. "
+            "Ensure the access token has email scope.",
         )

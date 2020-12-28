@@ -3,7 +3,7 @@
 import os
 from typing import Any
 
-from flask import Flask, jsonify
+from flask import Flask
 
 from src.dynamodb.connection_manager import ConnectionManager
 
