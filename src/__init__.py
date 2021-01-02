@@ -1,9 +1,11 @@
 """Factory method for creating and setting up a Flask application."""
 
+import pathlib
 import os
 from typing import Any
 
 from flask import Flask
+from flask_cors import CORS
 
 from src.dynamodb.connection_manager import ConnectionManager
 
@@ -20,6 +22,9 @@ def create_app() -> Any:
     app_settings = os.getenv("APP_SETTINGS")
     app.config.from_object(app_settings)
 
+    # Setup CORS.
+    cors = CORS(app)
+
     # Make the app config global so other parts of the system can use it.
     global app_config
     app_config = app.config
@@ -30,8 +35,12 @@ def create_app() -> Any:
     # Register blueprints
     from src.api.files import files_blueprint
     from src.api.ping import ping_blueprint
+    from src.api.subscribe import subscribe_blueprint
+    from src.api.synchronise import synchronise_blueprint
 
-    app.register_blueprint(ping_blueprint)
     app.register_blueprint(files_blueprint)
+    app.register_blueprint(ping_blueprint)
+    app.register_blueprint(subscribe_blueprint)
+    app.register_blueprint(synchronise_blueprint)
 
     return app

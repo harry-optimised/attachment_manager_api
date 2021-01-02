@@ -30,10 +30,15 @@ class ConnectionManager:
         # If we're NOT running in production, create and seed the table using local files.
         if not in_production:
 
-            # Create the table.
+            # Create files table.
             schema_json = pathlib.Path().cwd() / "src/dynamodb/files_table_schema.json"
             schema = json.load(open(str(schema_json), "r"))
             self.files_table = self._create_table(schema)
+
+            # Create user table.
+            schema_json = pathlib.Path().cwd() / "src/dynamodb/users_table_schema.json"
+            schema = json.load(open(str(schema_json), "r"))
+            self.users_table = self._create_table(schema)
 
             # Seed the database, we only seed in development mode.
             if do_seed:
@@ -44,6 +49,7 @@ class ConnectionManager:
         # Otherwise, we try and load the production table.
         else:
             self.files_table = self.db.Table("FilesTable")
+            self.users_table = self.db.Table("UsersTable")
 
         return True
 
@@ -58,7 +64,7 @@ class ConnectionManager:
             )
         except Exception as e:
             if e.__class__.__name__ == "ResourceInUseException":
-                return self.db.Table("FilesTable")
+                return self.db.Table(table_schema["TableName"])
             else:
                 raise e
 
@@ -93,6 +99,7 @@ class ConnectionManager:
         file["user"] = user
 
         self.files_table.put_item(Item=file)
+        # Todo: Check it actually puts.
         return "SUCCESS"
 
     def delete_file(self: Any, user: str, file: dict) -> bool:
@@ -107,8 +114,29 @@ class ConnectionManager:
         # If the item exists, delete and return SUCCESS.
         if "Item" in response.keys():
             self.files_table.delete_item(Key={"user": user, "reference": reference})
+            # Todo: Check it actually deletes.
             return "DELETED"
 
         # Otherwise report NOT_FOUND
         else:
             return "NOT_FOUND"
+
+    def merge_user(self: Any, user: str, object: str, on_key: str) -> bool:
+        # First try and get the user.
+        response = self.get_user(user)
+        existing_object = response if response else {}
+
+        # Add the user.
+        existing_object['user'] = user
+
+        # Merge new object.
+        existing_object[on_key] = object
+
+        # Put the user.
+        self.users_table.put_item(Item=existing_object)
+        # Todo: Check it actually puts.
+        return existing_object
+
+    def get_user(self: Any, user: str) -> bool:
+        response = self.users_table.get_item(Key={"user": user}, ConsistentRead=True)
+        return response['Item'] if 'Item' in response.keys() else False

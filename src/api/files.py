@@ -25,8 +25,6 @@ class File(Schema):
     created = fields.DateTime(required=True)
 
 
-# Todo: Add swagger documentation.
-# Add error tracking.
 class FilesSchema(Schema):
     """Validation schema for files put request."""
 
