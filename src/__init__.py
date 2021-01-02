@@ -8,9 +8,11 @@ from flask import Flask
 from flask_cors import CORS
 
 from src.dynamodb.connection_manager import ConnectionManager
+from src.integrations.integration_manager import IntegrationManager
 
-cm = ConnectionManager()
 app_config = None
+cm = ConnectionManager()
+im = IntegrationManager(cm)
 
 
 def create_app() -> Any:

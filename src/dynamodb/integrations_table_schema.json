@@ -1,5 +1,5 @@
 {
-    "TableName": "UsersTable",
+    "TableName": "IntegrationsTable",
     "KeySchema": [
       { "AttributeName": "user", "KeyType": "HASH" }
     ],

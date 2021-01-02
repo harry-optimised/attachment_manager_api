@@ -11,7 +11,13 @@ from .db_setup import get_dynamodb_connection
 
 
 class ConnectionManager:
-    """Manages the connection to the dynamo database."""
+    """Manages the connection to the dynamo database.
+
+    These methods are responsible for abstracting access to the database, handling any
+    clean up required on putting, getting, and deleting, and providing sensible defaults
+    when items don't exist. They also do database level validation.
+
+    """
 
     def __init__(self: Any) -> None:
         """Initialise so that this object can be created before it is initialised."""
@@ -36,9 +42,9 @@ class ConnectionManager:
             self.files_table = self._create_table(schema)
 
             # Create user table.
-            schema_json = pathlib.Path().cwd() / "src/dynamodb/users_table_schema.json"
+            schema_json = pathlib.Path().cwd() / "src/dynamodb/integrations_table_schema.json"
             schema = json.load(open(str(schema_json), "r"))
-            self.users_table = self._create_table(schema)
+            self.integrations_table = self._create_table(schema)
 
             # Seed the database, we only seed in development mode.
             if do_seed:
@@ -49,7 +55,7 @@ class ConnectionManager:
         # Otherwise, we try and load the production table.
         else:
             self.files_table = self.db.Table("FilesTable")
-            self.users_table = self.db.Table("UsersTable")
+            self.integrations_table = self.db.Table("IntegrationsTable")
 
         return True
 
@@ -121,22 +127,28 @@ class ConnectionManager:
         else:
             return "NOT_FOUND"
 
-    def merge_user(self: Any, user: str, object: str, on_key: str) -> bool:
-        # First try and get the user.
-        response = self.get_user(user)
-        existing_object = response if response else {}
+    def put_integrations(self: Any, user: str, integrations: dict) -> bool:
+        integrations['user'] = user
+        self.integrations_table.put_item(Item=integrations)
+        return "SUCCESS"
 
-        # Add the user.
-        existing_object['user'] = user
+    def get_integrations(self: Any, user: str) -> dict:
+        # Try and get the integrations for this user.
+        integrations = self.integrations_table.get_item(Key={"user": user}, ConsistentRead=True)
+        integrations = {} if 'Item' not in integrations.keys() else integrations['Item']
+        if 'user' in integrations.keys():
+            del integrations['user']
+        return integrations
 
-        # Merge new object.
-        existing_object[on_key] = object
+    def delete_integrations(self: Any, user: str) -> bool:
+        # Try and get the file first, to see if it exists.
+        response = self.integrations_table.get_item(Key={"user": user}, ConsistentRead=True)
 
-        # Put the user.
-        self.users_table.put_item(Item=existing_object)
-        # Todo: Check it actually puts.
-        return existing_object
+        # If the item exists, delete and return SUCCESS.
+        if "Item" in response.keys():
+            self.integrations_table.delete_item(Key={"user": user})
+            return "DELETED"
 
-    def get_user(self: Any, user: str) -> bool:
-        response = self.users_table.get_item(Key={"user": user}, ConsistentRead=True)
-        return response['Item'] if 'Item' in response.keys() else False
+        # Otherwise report NOT_FOUND
+        else:
+            return "NOT_FOUND"

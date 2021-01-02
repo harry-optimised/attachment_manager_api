@@ -10,51 +10,54 @@ from flask_cors import cross_origin
 from flask_restx import Api, Resource
 from marshmallow import INCLUDE, Schema, fields
 
-from src import app_config, cm
+from src import app_config, cm, im
 from src.auth import get_user_id, requires_auth
-from src.api.subscribers.msal import get_sign_in_flow, get_token_from_code
+from src.integrations.msal import get_sign_in_flow, get_token_from_code
 
 synchronise_blueprint = Blueprint("synchronise", __name__)
 api = Api(synchronise_blueprint)
 
 class Outlook(Resource):
 
-    @requires_auth
-    @cross_origin()
-    def get(self: Any) -> Any:
+    def _attachment_generator(self: Any, email, msal_requestor):
 
-        # Todo: Create a manual synchronise route that uses the stores tokens to get all the attachments and save.
+        attachment_response = msal_requestor.get(
+            f'https://graph.microsoft.com/v1.0/me/messages/{email["id"]}/attachments'
+            f'?select=contentType,name,isInline'
+        )
 
-        # Todo: Refresh the token using the access token if it's out of date.
+        if attachment_response.status_code == requests.codes.ok:
+            attachment_data = attachment_response.json()
+            for a in attachment_data['value']:
+                if not a['isInline']:
+                    yield {
+                        'name': a['name'],
+                        'created': email['receivedDateTime'],
+                        'sender': email['sender']['emailAddress']['address'],
+                        'type': a['contentType']
+                    }
+        else:
+            abort(response.status_code, f"Unable to get attachment: {response.text}")
 
-        synchronise_from_date = datetime.fromisoformat("2020-08-01T08:00")
-        # What are the rate limits on MSAL?
 
-        user_id = get_user_id()
-        user_info = cm.get_user(user_id)
-
-        all_messages_parsed = False
+    def _email_generator(self, from_datetime, msal_requestor):
 
         get_messages_url = f'https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?' \
                            f'$search="hasAttachments:true"' \
                            f'&$select=id,receivedDateTime,sender' \
                            f'&top=100'
 
-        # Todo: I'm assuming the search is ordered by most recent, which may not be a valid assumption.
-        # Todo: Manually put a rate limit on it?
+        # Define a closure that tests for emails beyond the date range.
+        def out_of_date_range(received_datetime):
+            return datetime.fromisoformat(received_datetime) < from_datetime
 
-        # Todo: We want to filter these attachments somehow, a lot are just noisy rubbish.
+        while True:
 
-        # Todo: This route needs to be launched as a job and return at a later time, with callback maybe?
+            response = msal_requestor.get(get_messages_url)
 
-        while not all_messages_parsed:
-
-            print("Requesting emails.")
-            response = requests.get(
-                get_messages_url,
-                headers={"Authorization": f"Bearer {user_info['msal']['access_token']}"},
-            )
-            if response.status_code == requests.codes.ok:
+            if response.status_code != requests.codes.ok:
+                abort(response.status_code, f"Unable to get emails: {response.text}")
+            else:
                 data = response.json()
                 emails = data['value']
 
@@ -62,55 +65,57 @@ class Outlook(Resource):
                 if '@odata.nextLink' in data.keys():
                     get_messages_url = data['@odata.nextLink']
                 else:
-                    all_messages_parsed = True
+                    return
 
-                file_data = []
-                for e in emails:
-                    id = e['id']
-                    received_datetime = e['receivedDateTime'].replace("Z", "")
-                    sender = e['sender']['emailAddress']['address']
+                for email in emails:
+                    email['receivedDateTime'] = email['receivedDateTime'].replace("Z", "")
 
-                    # Exit Condition
-                    python_received_datetime = datetime.fromisoformat(received_datetime)
-                    if python_received_datetime < synchronise_from_date:
-                        all_messages_parsed = True
-                        break;
+                    # Exit if email beyond date range.
+                    if out_of_date_range(email['receivedDateTime']):
+                        return
 
-                    print(received_datetime)
+                    yield email
 
-                    attachment_response = requests.get(
-                        f'https://graph.microsoft.com/v1.0/me/messages/{id}/attachments'
-                        f'?select=contentType,name,isInline',
-                        headers={"Authorization": f"Bearer {user_info['msal']['access_token']}"},
-                    )
-                    if attachment_response.status_code == requests.codes.ok:
+    @requires_auth
+    @cross_origin()
+    def get(self: Any) -> Any:
 
-                        attachment_data = attachment_response.json()
-                        attachments = attachment_data['value']
-                        print(f"Processing {len(attachments)} attachments.")
-                        for a in attachments:
-                            attachment_type = a['contentType']
-                            attachment_name = a['name']
-                            inline = a['isInline']
+        # Todo: I'm assuming the search is ordered by most recent, which may not be a valid assumption.
+        # Todo: This route needs to be launched as a job and return at a later time, with callback maybe?
+        # Todo: We want to filter these attachments somehow, a lot are just noisy rubbish.
+        # Todo: Manually put a rate limit on it?
 
-                            if not inline:
-                                file_data.append({
-                                    'name': attachment_name,
-                                    'created': received_datetime,
-                                    'sender': sender,
-                                    'type': attachment_type
-                                })
-                    else:
-                        abort(response.status_code, f"Unable to get attachment: {response.text}")
+        # Validate the request.
+        from_datetime = request.args.get("from_datetime")
+        if from_datetime is None:
+            abort(400, "Query parameter 'from_datetime' is required.")
 
-            else:
-                abort(response.status_code, f"Unable to get emails: {response.text}")
+        try:
+            from_datetime = datetime.fromisoformat(from_datetime)
+        except ValueError as e:
+            abort(400, str(e))
+
+        id = get_user_id()
+
+        # Try and get MSAL integration information, this will throw a KeyError if the msal
+        # integration doesn't exist, so handle and return gracefully.
+        try:
+            msal_requestor = im.get_requestor(id, integration='msal')
+        except KeyError:
+            abort(406, "No MSAL integration found for this user, have you subscribed yet?")
+
+        # Iterate through all valid emails and process the attachments.
+        file_data = []
+        email_generator = self._email_generator(from_datetime, msal_requestor)
+        for email in email_generator:
+            attachment_generator = self._attachment_generator(email=email, msal_requestor=msal_requestor)
+            for attachment in attachment_generator:
+                file_data.append(attachment)
 
         # Add all files to the database for this user.
         for file in file_data:
-            cm.put_file(user_id, file)
+            cm.put_file(id, file)
 
         return {'message': f"{len(file_data)} attachments added to the database."}, 200
-
 
 api.add_resource(Outlook, "/synchronise/outlook")
