@@ -19,8 +19,8 @@ class BaseConfig:
     AUTH_TENANT_URL = "https://thea-tenant.eu.auth0.com"
     AUTH_JWT_AUDIENCE = "https://thea-core.com/api"
 
-    MSAL_APP_ID = "42a46086-81ff-4654-8b30-2eb1b4ea551b"
-    MSAL_APP_SECRET = "WYweb1osVN_5rCo-Gb.q_A2~UI50Ey.2X4"
+    MSAL_APP_ID = "b56b6ea3-6322-415e-a9b3-72ab82fc4169"
+    MSAL_APP_SECRET = "edKOV9_NBkJ1-7oUI5F_mDRkxP7ko.hPmq"
     MSAL_REDIRECT = "http://localhost:5000/subscribe/outlook"
     MSAL_SCOPES = ["mail.read"]
     MSAL_AUTHORITY = "https://login.microsoftonline.com/common"

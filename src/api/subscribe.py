@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from flask import Blueprint, request, redirect, session, jsonify, Response
+from flask import Blueprint, request, redirect, session, jsonify, Response, make_response
 from flask_cors import cross_origin
 from flask_restx import Api, Resource
 
@@ -14,6 +14,23 @@ subscribe_blueprint = Blueprint("subscribe", __name__)
 api = Api(subscribe_blueprint)
 
 manual_global_session = None
+
+cookie_value = "aljo"
+class Send(Resource):
+
+    def get(self: Any) -> Any:
+        session[cookie_value] = cookie_value
+        response = make_response({'message': session.get(cookie_value, 'empty')})
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
+
+class Receive(Resource):
+
+    def get(self: Any) -> Any:
+        response = make_response({'message': session.get(cookie_value, 'empty')})
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
 
 class Outlook(Resource):
 
@@ -30,7 +47,11 @@ class Outlook(Resource):
             # This is actually how this route is protected, this line will fail with
             # an auth error if no authentication is provided, whilst leaving the rest of
             # the subscription open for microsoft to respond to.
-            id = get_user_id()
+            #print(request.headers)
+            #id = get_user_id()
+            id = 'henry.j.turner@gmail.com'
+
+            session['new_test'] = 'A'
 
             flow = get_sign_in_flow()
             manual_global_session = {'flow': flow, 'user': id}
@@ -42,8 +63,10 @@ class Outlook(Resource):
             flow = manual_global_session['flow']
             user = manual_global_session['user']
 
-            integration_object = get_token_from_code(request, flow)
-            im.add_integration(user, "msal", integration_object)
+            print(session.get('new_test', None))
+
+            #integration_object = get_token_from_code(request, flow)
+            #im.add_integration(user, "msal", integration_object)
 
             return redirect("http://localhost:3000/")
 
@@ -72,3 +95,5 @@ class Subscribe(Resource):
 
 api.add_resource(Outlook, "/subscribe/outlook")
 api.add_resource(Subscribe, "/subscribe")
+api.add_resource(Send, "/send")
+api.add_resource(Receive, "/receive")
