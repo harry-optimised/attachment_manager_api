@@ -12,7 +12,6 @@ from marshmallow import INCLUDE, Schema, fields
 
 from src import app_config, cm, im
 from src.auth import get_user_id, requires_auth
-from src.integrations.msal import get_sign_in_flow, get_token_from_code
 
 synchronise_blueprint = Blueprint("synchronise", __name__)
 api = Api(synchronise_blueprint)
@@ -79,11 +78,6 @@ class Outlook(Resource):
     @requires_auth
     @cross_origin()
     def get(self: Any) -> Any:
-
-        # Todo: I'm assuming the search is ordered by most recent, which may not be a valid assumption.
-        # Todo: This route needs to be launched as a job and return at a later time, with callback maybe?
-        # Todo: We want to filter these attachments somehow, a lot are just noisy rubbish.
-        # Todo: Manually put a rate limit on it?
 
         # Validate the request.
         from_datetime = request.args.get("from_datetime")

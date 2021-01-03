@@ -113,8 +113,21 @@ class IntegrationManager:
             return MSALRequestor(user, integrations[integration], self)
 
 
-    def list_integrations(self: Any, user: str) -> dict:
+    def list_integrations(self: Any, user: str) -> list:
+        """Return a list of the integrations belonging to the specified user.
 
+        Looks up the integration entries for the user in the database and simply returns
+        the list of keys, not the actual integration information itself.
+
+        It does NO checking on whether those integrations are still valid or not.
+
+        Arguments:
+            user: A string identifying the id of the user.
+
+        Returns:
+            list: A list of strings identifying each integration.
+
+        """
         # Try and get the integrations for this user.
         integrations = self.cm.get_integrations(user)
 

@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from flask import Blueprint, request, redirect, jsonify, Response
+from flask import Blueprint, request, redirect, session, jsonify, Response
 from flask_cors import cross_origin
 from flask_restx import Api, Resource
 
@@ -20,29 +20,32 @@ class Outlook(Resource):
     @cross_origin()
     def get(self: Any) -> Any:
 
-        print(request)
         global manual_global_session
-        flow = manual_global_session['flow']
-        user = manual_global_session['user']
-        result = get_token_from_code(request, flow)
+        code = request.args.get('code')
 
-        # Store the result.
-        result = im.add_integration(user, "msal", result)
+        # If this is a request from the front end then start the authorisation flow and
+        # respond back with the authentication URL that the FE must redirect to.
+        if code is None:
 
-        # Todo: Setup a subscription with MSAL for all future messages.
+            # This is actually how this route is protected, this line will fail with
+            # an auth error if no authentication is provided, whilst leaving the rest of
+            # the subscription open for microsoft to respond to.
+            id = get_user_id()
 
-        return redirect("http://localhost:3000/")
+            flow = get_sign_in_flow()
+            manual_global_session = {'flow': flow, 'user': id}
+            return {'auth_endpoint': flow['auth_uri']}, 200
 
+        # Otherwise, it's a response from Microsoft, so process the response, combine it
+        # with the saved flow and complete the authentication.
+        else:
+            flow = manual_global_session['flow']
+            user = manual_global_session['user']
 
-    @requires_auth
-    @cross_origin()
-    def put(self: Any) -> Any:
-        # Todo: I get a CORS error on the other end.
-        id = get_user_id()
-        flow = get_sign_in_flow()
-        global manual_global_session
-        manual_global_session = {'flow': flow, 'user': id}
-        return redirect(flow['auth_uri'])
+            integration_object = get_token_from_code(request, flow)
+            im.add_integration(user, "msal", integration_object)
+
+            return redirect("http://localhost:3000/")
 
 
 class Subscribe(Resource):
