@@ -45,4 +45,9 @@ def create_app() -> Any:
     app.register_blueprint(subscribe_blueprint)
     app.register_blueprint(synchronise_blueprint)
 
+    @app.after_request
+    def add_custom_cors_headers(response):
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
     return app

@@ -13,31 +13,11 @@ from src.integrations.msal import get_sign_in_flow, get_token_from_code
 subscribe_blueprint = Blueprint("subscribe", __name__)
 api = Api(subscribe_blueprint)
 
-manual_global_session = None
-
-cookie_value = "aljo"
-class Send(Resource):
-
-    def get(self: Any) -> Any:
-        session[cookie_value] = cookie_value
-        response = make_response({'message': session.get(cookie_value, 'empty')})
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        return response
-
-
-class Receive(Resource):
-
-    def get(self: Any) -> Any:
-        response = make_response({'message': session.get(cookie_value, 'empty')})
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        return response
-
 class Outlook(Resource):
 
     @cross_origin()
     def get(self: Any) -> Any:
 
-        global manual_global_session
         code = request.args.get('code')
 
         # If this is a request from the front end then start the authorisation flow and
@@ -47,26 +27,21 @@ class Outlook(Resource):
             # This is actually how this route is protected, this line will fail with
             # an auth error if no authentication is provided, whilst leaving the rest of
             # the subscription open for microsoft to respond to.
-            #print(request.headers)
-            #id = get_user_id()
-            id = 'henry.j.turner@gmail.com'
-
-            session['new_test'] = 'A'
+            id = get_user_id()
 
             flow = get_sign_in_flow()
-            manual_global_session = {'flow': flow, 'user': id}
+            session['flow'] = {'flow': flow, 'user': id}
+
             return {'auth_endpoint': flow['auth_uri']}, 200
 
         # Otherwise, it's a response from Microsoft, so process the response, combine it
         # with the saved flow and complete the authentication.
         else:
-            flow = manual_global_session['flow']
-            user = manual_global_session['user']
+            flow = session['flow']['flow']
+            user = session['flow']['user']
 
-            print(session.get('new_test', None))
-
-            #integration_object = get_token_from_code(request, flow)
-            #im.add_integration(user, "msal", integration_object)
+            integration_object = get_token_from_code(request, flow)
+            im.add_integration(user, "msal", integration_object)
 
             return redirect("http://localhost:3000/")
 
@@ -95,5 +70,3 @@ class Subscribe(Resource):
 
 api.add_resource(Outlook, "/subscribe/outlook")
 api.add_resource(Subscribe, "/subscribe")
-api.add_resource(Send, "/send")
-api.add_resource(Receive, "/receive")
