@@ -7,8 +7,8 @@ class BaseConfig:
     """Base configuration options."""
 
     SECRET_KEY = "oh_so_secret"
-    CORS_HEADERS = 'Content-Type'
-    SESSION_TYPE = 'filesystem'
+    CORS_HEADERS = "Content-Type"
+    SESSION_TYPE = "filesystem"
 
     PRODUCTION = False
     SEED = False
@@ -24,6 +24,8 @@ class BaseConfig:
     MSAL_REDIRECT = "http://localhost:5000/subscribe/outlook"
     MSAL_SCOPES = ["mail.read"]
     MSAL_AUTHORITY = "https://login.microsoftonline.com/common"
+
+    GRAPH_API_REQUEST_LIMIT = 100
 
 
 class DevelopmentConfig(BaseConfig):
@@ -42,3 +44,12 @@ class ProductionConfig(BaseConfig):
     """Production configuration options."""
 
     PRODUCTION = True
+
+
+# Dispatch the config to a variable accessible app-wide.
+configs = {
+    "src.config.DevelopmentConfig": DevelopmentConfig,
+    "src.config.TestingConfig": TestingConfig,
+    "src.config.ProductionConfig": ProductionConfig,
+}
+app_config = {**vars(BaseConfig), **vars(configs[os.getenv("APP_SETTINGS")])}

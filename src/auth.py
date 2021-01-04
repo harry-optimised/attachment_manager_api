@@ -9,7 +9,7 @@ from flask import _request_ctx_stack, abort, request
 from jose import jwt
 from six.moves.urllib.request import urlopen
 
-from src import app_config
+from src.config import app_config
 
 
 def get_token_auth_header() -> str:

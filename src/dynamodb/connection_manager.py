@@ -7,7 +7,7 @@ from typing import Any
 
 from boto3.dynamodb.conditions import Key
 
-from .db_setup import get_dynamodb_connection
+from src.dynamodb.db_setup import get_dynamodb_connection
 
 
 class ConnectionManager:
@@ -42,7 +42,9 @@ class ConnectionManager:
             self.files_table = self._create_table(schema)
 
             # Create user table.
-            schema_json = pathlib.Path().cwd() / "src/dynamodb/integrations_table_schema.json"
+            schema_json = (
+                pathlib.Path().cwd() / "src/dynamodb/integrations_table_schema.json"
+            )
             schema = json.load(open(str(schema_json), "r"))
             self.integrations_table = self._create_table(schema)
 
@@ -128,21 +130,25 @@ class ConnectionManager:
             return "NOT_FOUND"
 
     def put_integrations(self: Any, user: str, integrations: dict) -> bool:
-        integrations['user'] = user
+        integrations["user"] = user
         self.integrations_table.put_item(Item=integrations)
         return "SUCCESS"
 
     def get_integrations(self: Any, user: str) -> dict:
         # Try and get the integrations for this user.
-        integrations = self.integrations_table.get_item(Key={"user": user}, ConsistentRead=True)
-        integrations = {} if 'Item' not in integrations.keys() else integrations['Item']
-        if 'user' in integrations.keys():
-            del integrations['user']
+        integrations = self.integrations_table.get_item(
+            Key={"user": user}, ConsistentRead=True
+        )
+        integrations = {} if "Item" not in integrations.keys() else integrations["Item"]
+        if "user" in integrations.keys():
+            del integrations["user"]
         return integrations
 
     def delete_integrations(self: Any, user: str) -> bool:
         # Try and get the file first, to see if it exists.
-        response = self.integrations_table.get_item(Key={"user": user}, ConsistentRead=True)
+        response = self.integrations_table.get_item(
+            Key={"user": user}, ConsistentRead=True
+        )
 
         # If the item exists, delete and return SUCCESS.
         if "Item" in response.keys():
@@ -152,3 +158,6 @@ class ConnectionManager:
         # Otherwise report NOT_FOUND
         else:
             return "NOT_FOUND"
+
+
+cm = ConnectionManager()

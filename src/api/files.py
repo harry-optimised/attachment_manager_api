@@ -6,8 +6,8 @@ from flask import Blueprint, abort, request
 from flask_restx import Api, Resource
 from marshmallow import INCLUDE, Schema, fields
 
-from src import cm
 from src.auth import get_user_id, requires_auth
+from src.dynamodb.connection_manager import cm
 
 files_blueprint = Blueprint("files", __name__)
 api = Api(files_blueprint)

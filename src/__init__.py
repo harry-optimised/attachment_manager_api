@@ -1,18 +1,13 @@
 """Factory method for creating and setting up a Flask application."""
 
-import pathlib
 import os
 from typing import Any
 
 from flask import Flask
 from flask_cors import CORS
 
-from src.dynamodb.connection_manager import ConnectionManager
-from src.integrations.integration_manager import IntegrationManager
-
-app_config = None
-cm = ConnectionManager()
-im = IntegrationManager(cm)
+from src.dynamodb.connection_manager import cm
+from src.integration_manager import im
 
 
 def create_app() -> Any:
@@ -25,14 +20,13 @@ def create_app() -> Any:
     app.config.from_object(app_settings)
 
     # Setup CORS.
-    cors = CORS(app)
-
-    # Make the app config global so other parts of the system can use it.
-    global app_config
-    app_config = app.config
+    CORS(app)
 
     # Setup the database.
     cm.initialise(app.config)
+
+    # Setup the integration manager.
+    im.initialise(cm, app.config)
 
     # Register blueprints
     from src.api.files import files_blueprint
@@ -46,8 +40,8 @@ def create_app() -> Any:
     app.register_blueprint(synchronise_blueprint)
 
     @app.after_request
-    def add_custom_cors_headers(response):
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
+    def add_custom_cors_headers(response: Any) -> Any:
+        response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
 
     return app
