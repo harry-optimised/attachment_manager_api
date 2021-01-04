@@ -59,6 +59,13 @@ class ConnectionManager:
             self.files_table = self.db.Table("FilesTable")
             self.integrations_table = self.db.Table("IntegrationsTable")
 
+        # Check tables are ready and fail early if not.
+        try:
+            assert self.files_table.table_status == "ACTIVE"
+            assert self.integrations_table.table_status == "ACTIVE"
+        except Exception as e:
+            raise Exception(f"Tables were not initialised properly.")
+
         return True
 
     def _create_table(self: Any, table_schema: dict) -> Any:

@@ -57,7 +57,7 @@ class IntegrationManager:
         if integration not in integrations.keys():
             raise KeyError(f"No entry found for {integration} on {user}.")
         else:
-            return requestor_map[integration](user, integrations[integration], self)
+            return requestor_map[integration](user, integrations[integration], self, self.app_config)
 
     def list_integrations(self: Any, user: str) -> list:
         """Return a list of the integrations belonging to the specified user.

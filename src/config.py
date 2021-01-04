@@ -6,25 +6,33 @@ import os
 class BaseConfig:
     """Base configuration options."""
 
-    SECRET_KEY = "oh_so_secret"
-    CORS_HEADERS = "Content-Type"
-    SESSION_TYPE = "filesystem"
-
+    # Mode Config
     PRODUCTION = False
     SEED = False
     TESTING = False
-    AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
+
+    # Session Config
+    SECRET_KEY = "oh_so_secret"
+
+    # CORS Config
+    CORS_HEADERS = "Content-Type"
+
+    # DynamoDB Config
+    AWS_DEFAULT_REGION = "eu-west-2"
     DATABASE_URL = os.getenv("DATABASE_URL")
 
+    # Auth Config
     AUTH_TENANT_URL = "https://thea-tenant.eu.auth0.com"
     AUTH_JWT_AUDIENCE = "https://thea-core.com/api"
 
-    MSAL_APP_ID = "b56b6ea3-6322-415e-a9b3-72ab82fc4169"
-    MSAL_APP_SECRET = "edKOV9_NBkJ1-7oUI5F_mDRkxP7ko.hPmq"
-    MSAL_REDIRECT = "http://localhost:5000/subscribe/outlook"
+    # MSAL Config
+    MSAL_APP_ID = os.getenv("MSAL_APP_ID")
+    MSAL_APP_SECRET = os.getenv("MSAL_APP_SECRET")
+    MSAL_REDIRECT = os.getenv("MSAL_REDIRECT")
     MSAL_SCOPES = ["mail.read"]
     MSAL_AUTHORITY = "https://login.microsoftonline.com/common"
 
+    # Microsoft Outlook Graph API Config
     GRAPH_API_REQUEST_LIMIT = 100
 
 

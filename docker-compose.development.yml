@@ -15,8 +15,10 @@ services:
       - APP_SETTINGS=src.config.DevelopmentConfig
       - AWS_ACCESS_KEY_ID=AKIAZVRKZOPUMIWUEW55
       - AWS_SECRET_ACCESS_KEY=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
-      - AWS_DEFAULT_REGION=eu-west-2
       - DATABASE_URL=http://db:8000
+      - MSAL_APP_ID=b56b6ea3-6322-415e-a9b3-72ab82fc4169
+      - MSAL_APP_SECRET=edKOV9_NBkJ1-7oUI5F_mDRkxP7ko.hPmq
+      - MSAL_REDIRECT=http://localhost:5000/subscribe/outlook
     depends_on:
       - db
 

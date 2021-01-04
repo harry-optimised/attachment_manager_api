@@ -1,0 +1,21 @@
+version: '3.3'
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - 5000:5000
+    environment:
+      - FLASK_ENV=development
+      - APP_SETTINGS=src.config.ProductionConfig
+      - AWS_ACCESS_KEY_ID=AKIAIPW56LY27INLVM5Q
+      - AWS_SECRET_ACCESS_KEY=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
+      - AWS_DEFAULT_REGION=eu-west-2
+      - DATABASE_URL=https://dynamodb.eu-west-2.amazonaws.com
+
+
