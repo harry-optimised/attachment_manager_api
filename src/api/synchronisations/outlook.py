@@ -36,13 +36,14 @@ class Outlook(Resource):
 
         if response.status_code == requests.codes.ok:
             data = response.json()
-            for a in data["value"]:
-                if not a["isInline"]:
+            for attachment in data["value"]:
+                if not attachment["isInline"]:
                     yield {
-                        "name": a["name"],
+                        "name": attachment["name"],
                         "created": email["receivedDateTime"],
                         "sender": email["sender"]["emailAddress"]["address"],
-                        "type": a["contentType"],
+                        "type": attachment["contentType"],
+                        "link": email["webLink"],
                     }
         else:
             abort(response.status_code, f"Unable to get attachment: {response.text}")
@@ -52,7 +53,7 @@ class Outlook(Resource):
         get_messages_url = (
             "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?"
             '$search="hasAttachments:true"'
-            "&$select=id,receivedDateTime,sender"
+            "&$select=id,receivedDateTime,sender,webLink"
             "&top=100"
         )
 
