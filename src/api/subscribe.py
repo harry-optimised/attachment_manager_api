@@ -6,6 +6,7 @@ from flask import Blueprint
 from flask_restx import Api, Resource
 
 from src.api.subscriptions.outlook import Outlook
+from src.api.subscriptions.gmail import Gmail
 from src.auth import get_user_id, requires_auth
 from src.integration_manager import im
 
@@ -35,5 +36,6 @@ class Subscribe(Resource):
             return [], 200
 
 
+api.add_resource(Gmail, "/subscribe/gmail")
 api.add_resource(Outlook, "/subscribe/outlook")
 api.add_resource(Subscribe, "/subscribe")

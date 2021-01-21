@@ -35,6 +35,13 @@ class BaseConfig:
     # Microsoft Outlook Graph API Config
     GRAPH_API_REQUEST_LIMIT = 100
 
+    # Google Config
+    GOOGLE_APP_ID = os.getenv("GOOGLE_APP_ID")
+    GOOGLE_APP_SECRET = os.getenv("GOOGLE_APP_SECRET")
+    GOOGLE_REDIRECT = os.getenv("GOOGLE_REDIRECT")
+    GOOGLE_SCOPES = "openid email"
+    GOOGLE_AUTHORITY = "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent"
+
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration options."""
