@@ -1,7 +1,7 @@
 from typing import Any
 
 from src.integrations.msal import MSALRequestor
-
+from src.integrations.google import GoogleRequestor
 
 class IntegrationManager:
     """This provides methods for handling integrations for a user.
@@ -45,7 +45,7 @@ class IntegrationManager:
 
     def get_requestor(self: Any, user: str, integration: str) -> Any:
 
-        requestor_map = {"msal": MSALRequestor}
+        requestor_map = {"msal": MSALRequestor, "google": GoogleRequestor}
 
         # Try and get the integrations for this user.
         integrations = self.cm.get_integrations(user)

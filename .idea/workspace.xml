@@ -31,10 +31,10 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/integrations" />
+      <recent name="$PROJECT_DIR$/src/api/synchronisations" />
       <recent name="$PROJECT_DIR$/src/api/subscriptions" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/api" />
-      <recent name="$PROJECT_DIR$/src/dynamodb" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
