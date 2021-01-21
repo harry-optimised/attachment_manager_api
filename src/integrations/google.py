@@ -12,19 +12,20 @@ class GoogleRequestor:
         self.app_config = app_config
 
     def refresh_access_token(self: Any) -> bool:
+
         response = requests.post(
-            f"{self.app_config['MSAL_AUTHORITY']}/oauth2/v2.0/token",
+            f"https://www.googleapis.com/oauth2/v4/token",
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Authorization": f"Bearer {self.google_info['access_token']}",
             },
             data={
-                "client_id": self.app_config['MSAL_APP_ID'],
-                "scope": self.app_config['MSAL_SCOPES'],
+                "client_id": self.app_config['GOOGLE_APP_ID'],
+                "scope": self.app_config['GOOGLE_SCOPES'],
                 "refresh_token": self.google_info["refresh_token"],
-                "redirect_uri": self.app_config['MSAL_REDIRECT'],
+                "redirect_uri": self.app_config['GOOGLE_REDIRECT'],
                 "grant_type": "refresh_token",
-                "client_secret": self.app_config['MSAL_APP_SECRET'],
+                "client_secret": self.app_config['GOOGLE_APP_SECRET'],
             },
         )
         if response.status_code == 200:
@@ -47,7 +48,7 @@ class GoogleRequestor:
         if response.status_code == 401:
 
             # Try and refresh the access token.
-            #self.refresh_access_token()
+            self.refresh_access_token()
 
             response = requests.get(
                 request,
